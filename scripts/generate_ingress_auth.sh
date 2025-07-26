@@ -1,6 +1,13 @@
 #!/bin/bash
-if [[ $# -eq 0 ]] ; then
-    echo "Run the script with the required auth user and namespace for the secret: ${0} [user] [namespace]"
-    exit 0
+# Generate a Kubernetes secret for ingress basic authentication.
+# Usage: generate_ingress_auth.sh [user] [namespace]
+set -e
+if [[ $# -ne 2 ]]; then
+    echo "Usage: $0 [user] [namespace]"
+    exit 1
 fi
-printf "${1}:`openssl passwd -apr1`\n" >> auth
+USER="$1"
+NAMESPACE="$2"
+printf "%s:$(openssl passwd -apr1)\n" "$USER" > auth
+kubectl create secret generic basic-auth --from-file=auth -n "$NAMESPACE"
+rm auth
